@@ -6,7 +6,8 @@
   "types": "dist/api.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    "pkg": "tsc && npx pkg .\\dist\\app.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "axios": "^0.21.4",
-    "local-devices": "^3.1.0"
+    "local-devices": "^3.1.0",
+    "pkg": "^5.5.1"
   }
 }
