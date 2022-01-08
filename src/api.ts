@@ -103,18 +103,19 @@ export const loginDeviceByIp = async (email: string = process.env.TAPO_USERNAME 
   return deviceKey;
 }
 
-export const turnOn = async (deviceKey: TapoDeviceKey, deviceOn: boolean = true) => {
+export const turnOn = async (deviceKey: TapoDeviceKey, turningParam: { deviceOn: boolean, transition: number }) => {
   const turnDeviceOnRequest = {
     "method": "set_device_info",
     "params": {
-      "device_on": deviceOn,
+      "device_on": turningParam.deviceOn,
+      "transition": turningParam.transition
     }
   }
   await securePassthrough(turnDeviceOnRequest, deviceKey)
 }
 
-export const turnOff = async (deviceKey: TapoDeviceKey) => {
-  return turnOn(deviceKey, false);
+export const turnOff = async (deviceKey: TapoDeviceKey, transition: number) => {
+  return turnOn(deviceKey, { deviceOn: false, transition });
 }
 
 export const setBrightness = async (deviceKey: TapoDeviceKey, brightnessParam: {

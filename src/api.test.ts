@@ -53,7 +53,7 @@ xtest('Turn device on', async () => {
     const getDeviceInfoResponse = await getDeviceInfo(deviceToken);
     console.log(getDeviceInfoResponse);
 
-    await turnOn(deviceToken);
+    await turnOn(deviceToken, { deviceOn: true, transition: 0 });
 });
 
 xtest('Set bulb colour', async () => {
@@ -66,7 +66,7 @@ xtest('Set bulb colour', async () => {
     console.log(smartBulb);
 
     const deviceToken = await loginDevice(email, password, smartBulb);
-    await turnOn(deviceToken);
+    await turnOn(deviceToken, { deviceOn: true, transition: 0 });
     await setBrightness(deviceToken, { brightnessLevel: 75, transition: 0 });
     await setColour(deviceToken, 'warmwhite');
 });
