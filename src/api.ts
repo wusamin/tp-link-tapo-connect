@@ -7,9 +7,9 @@ import { getColour } from './colour-helper';
 const baseUrl = 'https://eu-wap.tplinkcloud.com/'
 
 export {
-    TapoDevice,
-    TapoDeviceKey,
-    TapoDeviceInfo
+  TapoDevice,
+  TapoDeviceKey,
+  TapoDeviceInfo
 };
 
 export const cloudLogin = async (email: string = process.env.TAPO_USERNAME || undefined, password: string = process.env.TAPO_PASSWORD || undefined): Promise<string> => {
@@ -53,15 +53,15 @@ export const listDevicesByType = async (cloudToken: string, deviceType: string):
   return devices.filter(d => d.deviceType === deviceType);
 }
 
-export const handshake = async (deviceIp: string):Promise<TapoDeviceKey> => {
+export const handshake = async (deviceIp: string): Promise<TapoDeviceKey> => {
   const keyPair = await generateKeyPair();
 
-  const handshakeRequest = 
-    {
-      method: "handshake",
-      params: {
-          "key": keyPair.publicKey
-     }
+  const handshakeRequest =
+  {
+    method: "handshake",
+    params: {
+      "key": keyPair.publicKey
+    }
   }
   const response = await axios({
     method: 'post',
@@ -72,33 +72,33 @@ export const handshake = async (deviceIp: string):Promise<TapoDeviceKey> => {
   checkError(response.data);
 
   const setCookieHeader = response.headers['set-cookie'][0];
-  const sessionCookie = setCookieHeader.substring(0,setCookieHeader.indexOf(';'))
+  const sessionCookie = setCookieHeader.substring(0, setCookieHeader.indexOf(';'))
 
   const deviceKey = readDeviceKey(response.data.result.key, keyPair.privateKey)
-    
+
   return {
-    key: deviceKey.subarray(0,16),
-    iv: deviceKey.subarray(16,32),
+    key: deviceKey.subarray(0, 16),
+    iv: deviceKey.subarray(16, 32),
     deviceIp,
     sessionCookie
   }
 }
 
-export const loginDevice = async (email: string = process.env.TAPO_USERNAME || undefined, password: string = process.env.TAPO_PASSWORD || undefined, device: TapoDevice) => 
+export const loginDevice = async (email: string = process.env.TAPO_USERNAME || undefined, password: string = process.env.TAPO_PASSWORD || undefined, device: TapoDevice) =>
   loginDeviceByIp(email, password, await resolveMacToIp(device.deviceMac));
 
-export const loginDeviceByIp = async (email: string = process.env.TAPO_USERNAME || undefined, password: string = process.env.TAPO_PASSWORD || undefined, deviceIp: string):Promise<TapoDeviceKey> => {
+export const loginDeviceByIp = async (email: string = process.env.TAPO_USERNAME || undefined, password: string = process.env.TAPO_PASSWORD || undefined, deviceIp: string): Promise<TapoDeviceKey> => {
   const deviceKey = await handshake(deviceIp);
-  const loginDeviceRequest = 
-    {
-      "method": "login_device",
-      "params": {
-          "username": base64Encode(shaDigest(email)), 
-          "password": base64Encode(password)
-     }
+  const loginDeviceRequest =
+  {
+    "method": "login_device",
+    "params": {
+      "username": base64Encode(shaDigest(email)),
+      "password": base64Encode(password)
+    }
   }
 
-  const loginDeviceResponse =  await securePassthrough(loginDeviceRequest, deviceKey);
+  const loginDeviceResponse = await securePassthrough(loginDeviceRequest, deviceKey);
   deviceKey.token = loginDeviceResponse.token;
   return deviceKey;
 }
@@ -106,7 +106,7 @@ export const loginDeviceByIp = async (email: string = process.env.TAPO_USERNAME 
 export const turnOn = async (deviceKey: TapoDeviceKey, deviceOn: boolean = true) => {
   const turnDeviceOnRequest = {
     "method": "set_device_info",
-    "params":{
+    "params": {
       "device_on": deviceOn,
     }
   }
@@ -117,17 +117,35 @@ export const turnOff = async (deviceKey: TapoDeviceKey) => {
   return turnOn(deviceKey, false);
 }
 
-export const setBrightness = async (deviceKey: TapoDeviceKey, brightnessLevel: number = 100) => {
+export const setBrightness = async (deviceKey: TapoDeviceKey, brightnessParam: {
+  brightnessLevel: number,
+  transition: number
+}) => {
   const setBrightnessRequest = {
     "method": "set_device_info",
-    "params":{
-      "brightness": brightnessLevel,
+    "params": {
+      "brightness": brightnessParam.brightnessLevel,
+      "transition": brightnessParam.transition
     }
   }
   await securePassthrough(setBrightnessRequest, deviceKey)
 }
 
-export const setColour = async (deviceKey: TapoDeviceKey, colour: string = 'white') => {    
+export const setColortemp = async (deviceKey: TapoDeviceKey, colorTempParam: {
+  colorTemp: number,
+  transition: number
+}) => {
+  const setColourRequest = {
+    "method": "set_device_info",
+    "params": {
+      "color_temp": colorTempParam.colorTemp,
+      "transition": colorTempParam.transition
+    }
+  }
+  await securePassthrough(setColourRequest, deviceKey)
+}
+
+export const setColour = async (deviceKey: TapoDeviceKey, colour: string = 'white') => {
   const params = await getColour(colour);
 
   const setColourRequest = {
@@ -144,12 +162,12 @@ export const getDeviceInfo = async (deviceKey: TapoDeviceKey): Promise<TapoDevic
   return augmentTapoDeviceInfo(await securePassthrough(statusRequest, deviceKey))
 }
 
-export const securePassthrough = async (deviceRequest: any, deviceKey: TapoDeviceKey):Promise<any> => {
+export const securePassthrough = async (deviceRequest: any, deviceKey: TapoDeviceKey): Promise<any> => {
   const encryptedRequest = encrypt(deviceRequest, deviceKey)
   const securePassthroughRequest = {
     "method": "securePassthrough",
     "params": {
-        "request": encryptedRequest, 
+      "request": encryptedRequest,
     }
   }
 
@@ -168,7 +186,7 @@ export const securePassthrough = async (deviceRequest: any, deviceKey: TapoDevic
   checkError(decryptedResponse);
 
   return decryptedResponse.result;
-}  
+}
 
 const augmentTapoDevice = async (deviceInfo: TapoDevice): Promise<TapoDevice> => {
   if (isTapoDevice(deviceInfo.deviceType)) {
@@ -182,18 +200,18 @@ const augmentTapoDevice = async (deviceInfo: TapoDevice): Promise<TapoDevice> =>
 }
 
 const augmentTapoDeviceInfo = (deviceInfo: TapoDeviceInfo): TapoDeviceInfo => {
-    return {
-      ...deviceInfo,
-      ssid: base64Decode(deviceInfo.ssid),
-      nickname: base64Decode(deviceInfo.nickname),
-    }
+  return {
+    ...deviceInfo,
+    ssid: base64Decode(deviceInfo.ssid),
+    nickname: base64Decode(deviceInfo.nickname),
+  }
 }
 
 export const isTapoDevice = (deviceType: string) => {
   switch (deviceType) {
     case 'SMART.TAPOPLUG':
     case 'SMART.TAPOBULB':
-    return true
+      return true
     default: return false
   }
 }
@@ -212,6 +230,6 @@ const checkError = (responseData: any) => {
       case 9999: throw new Error("Device token expired or invalid");
       default: throw new Error(`Unexpected Error Code: ${errorCode}`);
     }
-    
+
   }
 }

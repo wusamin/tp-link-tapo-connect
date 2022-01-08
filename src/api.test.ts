@@ -6,24 +6,24 @@ const deviceIp = "192.168.0.62";
 
 xtest('Login using ENV Vars & list devices', async () => {
     const cloudToken = await cloudLogin();
-    
+
     const devices = await listDevices(cloudToken);
     console.log(devices);
 });
 
 xtest('Login & list devices', async () => {
     const cloudToken = await cloudLogin(email, password);
-    
+
     const devices = await listDevices(cloudToken);
     console.log(devices);
 });
 
 xtest('List smart plugs', async () => {
     const cloudToken = await cloudLogin(email, password);
-    
+
     const devices = await listDevicesByType(cloudToken, 'SMART.TAPOPLUG');
     console.log(devices);
-    
+
     const smartPlug = devices[0];
     console.log(smartPlug);
 
@@ -35,10 +35,10 @@ xtest('List smart plugs', async () => {
 
 xtest('List smart bulbs', async () => {
     const cloudToken = await cloudLogin(email, password);
-    
+
     const devices = await listDevicesByType(cloudToken, 'SMART.TAPOBULB');
     console.log(devices);
-    
+
     const smartBulb = devices[0];
     console.log(smartBulb);
 
@@ -49,7 +49,7 @@ xtest('List smart bulbs', async () => {
 
 xtest('Turn device on', async () => {
     const deviceToken = await loginDeviceByIp(email, password, deviceIp);
-    
+
     const getDeviceInfoResponse = await getDeviceInfo(deviceToken);
     console.log(getDeviceInfoResponse);
 
@@ -58,16 +58,16 @@ xtest('Turn device on', async () => {
 
 xtest('Set bulb colour', async () => {
     const cloudToken = await cloudLogin(email, password);
-    
+
     const devices = await listDevicesByType(cloudToken, 'SMART.TAPOBULB');
     console.log(devices);
-    
+
     const smartBulb = devices[0];
     console.log(smartBulb);
 
     const deviceToken = await loginDevice(email, password, smartBulb);
     await turnOn(deviceToken);
-    await setBrightness(deviceToken, 75);
+    await setBrightness(deviceToken, { brightnessLevel: 75, transition: 0 });
     await setColour(deviceToken, 'warmwhite');
 });
 
